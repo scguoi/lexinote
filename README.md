@@ -12,13 +12,14 @@
 
 ### 功能
 
-- 双击单词即可查询释义，支持音标、词性、例句、词源
-- 选中句子自动翻译
-- AI 驱动，兼容 OpenAI 格式 API（DeepSeek、Groq 等）
-- 弹出窗口管理生词本，支持搜索、收藏、删除
-- 一键导出 Anki TSV，导出后自动清理已导出单词
-- 支持中/英/日/韩/西/法/德等目标语言
-- 支持中英文界面切换
+- **双击查词**：双击单词即可查询释义，支持音标、词性、例句、词源
+- **句子翻译**：选中句子自动翻译
+- **捕获模式** ⚡：开启后选中文本即刻查询，无需点击按钮（扩展图标显示 ON 徽章）
+- **AI 驱动**：兼容 OpenAI 格式 API（DeepSeek、Groq 等）
+- **生词本管理**：弹出窗口管理生词本，支持搜索、收藏、删除
+- **一键导出 Anki**：导出 TSV 格式，导出后自动清理已导出单词
+- **多语言支持**：支持中/英/日/韩/西/法/德等目标语言
+- **双语界面**：支持中英文界面切换
 
 ### 安装
 
@@ -46,13 +47,14 @@ A lightweight Chrome extension for vocabulary capture during English reading. Lo
 
 ### Features
 
-- Double-click any word for instant lookup with phonetics, examples, and etymology
-- Select sentences for translation
-- AI-powered via OpenAI-compatible APIs (DeepSeek, Groq, etc.)
-- Popup word book with search, star, and delete
-- One-click Anki TSV export, auto-cleans exported words
-- Supports Chinese, English, Japanese, Korean, Spanish, French, German as target languages
-- Bilingual UI (Chinese / English)
+- **Double-click lookup**: Instant word definitions with phonetics, examples, and etymology
+- **Sentence translation**: Auto-translate selected sentences
+- **Capture mode** ⚡: Enable for instant lookup on text selection without clicking (shows ON badge on extension icon)
+- **AI-powered**: OpenAI-compatible APIs (DeepSeek, Groq, etc.)
+- **Word book management**: Popup interface with search, star, and delete
+- **One-click Anki export**: Export to TSV format, auto-cleans exported words
+- **Multi-language**: Supports Chinese, English, Japanese, Korean, Spanish, French, German as target languages
+- **Bilingual UI**: Switch between Chinese and English interface
 
 ### Install
 
