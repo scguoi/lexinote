@@ -56,7 +56,7 @@ export const WordItem: React.FC<WordItemProps> = ({ word, emoji, onToggleStar, o
       </div>
 
       <div style={{ fontSize: '12px', color: '#718096', marginTop: '2px' }}>
-        {word.partOfSpeech ? `${word.partOfSpeech}` : ''}
+        {word.partOfSpeech ? `[${word.partOfSpeech}] ` : ''}{word.definition ? (word.definition.length > 40 ? word.definition.slice(0, 40) + '...' : word.definition) : ''}
       </div>
 
       {expanded && (
