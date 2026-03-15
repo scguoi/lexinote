@@ -34,9 +34,8 @@ export const App: React.FC = () => {
   });
 
   const handleToggleStar = async (id: string) => {
+    setWords(prev => prev.map(w => w.id === id ? { ...w, starred: !w.starred } : w));
     await storage.toggleStarred(id);
-    const allWords = await storage.getWords();
-    setWords(allWords.sort((a, b) => b.lastSeenAt - a.lastSeenAt));
   };
 
   const handleDelete = async (id: string) => {
