@@ -15,10 +15,16 @@ export const TARGET_LANGUAGES: Language[] = [
 ];
 
 export const DEFAULT_SETTINGS = {
-  apiBaseUrl: 'https://api.openai.com/v1',
-  apiKey: '',
-  fastModel: 'gpt-3.5-turbo',
-  smartModel: 'gpt-4',
+  fast: {
+    apiBaseUrl: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-3.5-turbo',
+  },
+  smart: {
+    apiBaseUrl: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-4',
+  },
   sourceLanguage: 'en',
   targetLanguage: 'zh',
   uiLanguage: 'auto',

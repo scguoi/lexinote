@@ -105,11 +105,12 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleTestConnection = async () => {
-    const urlError = validateUrl(settings.apiBaseUrl);
+  const handleTestConnection = async (which: 'fast' | 'smart') => {
+    const config = settings[which];
+    const urlError = validateUrl(config.apiBaseUrl);
     if (urlError) {
       setConnectionStatus('error');
-      setConnectionMessage(urlError);
+      setConnectionMessage(`${which}: ${urlError}`);
       return;
     }
 
@@ -117,44 +118,49 @@ export const App: React.FC = () => {
     setConnectionMessage('');
 
     try {
-      const response = await fetch(`${settings.apiBaseUrl}/models`, {
-        headers: { 'Authorization': `Bearer ${settings.apiKey}` },
+      const response = await fetch(`${config.apiBaseUrl}/models`, {
+        headers: { 'Authorization': `Bearer ${config.apiKey}` },
         signal: AbortSignal.timeout(5000),
       });
 
       if (response.ok) {
         setConnectionStatus('success');
-        setConnectionMessage(t('connectionSuccess'));
+        setConnectionMessage(`${which}: ${t('connectionSuccess')}`);
       } else if (response.status === 401 || response.status === 403) {
         setConnectionStatus('error');
-        setConnectionMessage(t('invalidApiKey'));
+        setConnectionMessage(`${which}: ${t('invalidApiKey')}`);
       } else if (response.status === 404) {
         setConnectionStatus('error');
-        setConnectionMessage(t('endpointNotFound'));
+        setConnectionMessage(`${which}: ${t('endpointNotFound')}`);
       } else if (response.status === 429) {
         setConnectionStatus('error');
-        setConnectionMessage(t('rateLimited'));
+        setConnectionMessage(`${which}: ${t('rateLimited')}`);
       } else {
         setConnectionStatus('error');
-        setConnectionMessage(`HTTP ${response.status}`);
+        setConnectionMessage(`${which}: HTTP ${response.status}`);
       }
     } catch {
       setConnectionStatus('error');
-      setConnectionMessage(t('networkError'));
+      setConnectionMessage(`${which}: ${t('networkError')}`);
     }
   };
 
   const handleSave = async () => {
-    const urlError = validateUrl(settings.apiBaseUrl);
-    if (urlError) {
-      setSaveMessage(urlError);
-      return;
-    }
-
-    const hasPermission = await requestPermissionIfNeeded(settings.apiBaseUrl);
-    if (!hasPermission) {
-      setSaveMessage(t('permissionRequired'));
-      return;
+    // Validate both URLs
+    for (const which of ['fast', 'smart'] as const) {
+      const config = settings[which];
+      if (config.apiBaseUrl) {
+        const urlError = validateUrl(config.apiBaseUrl);
+        if (urlError) {
+          setSaveMessage(`${which}: ${urlError}`);
+          return;
+        }
+        const hasPermission = await requestPermissionIfNeeded(config.apiBaseUrl);
+        if (!hasPermission) {
+          setSaveMessage(`${which}: ${t('permissionRequired')}`);
+          return;
+        }
+      }
     }
 
     await storage.updateSettings(settings);
@@ -200,6 +206,69 @@ export const App: React.FC = () => {
     marginBottom: '12px',
   };
 
+  const updateModelField = useCallback((which: 'fast' | 'smart', key: string, value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      [which]: { ...prev[which], [key]: value },
+    }));
+    setIsDirty(true);
+    setSaveMessage('');
+  }, []);
+
+  const renderModelConfig = (which: 'fast' | 'smart', emoji: string, label: string, description: string) => {
+    const config = settings[which];
+    return (
+      <div style={sectionStyle}>
+        <h2 style={{ fontSize: '16px', margin: '0 0 4px', color: '#2D3748' }}>{emoji} {label}</h2>
+        <p style={{ fontSize: '12px', color: '#A0AEC0', margin: '0 0 12px' }}>{description}</p>
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Base URL</label>
+          <input
+            type="text"
+            value={config.apiBaseUrl}
+            onChange={(e) => updateModelField(which, 'apiBaseUrl', e.target.value)}
+            placeholder="https://api.openai.com/v1"
+            style={inputStyle}
+          />
+        </div>
+        <div style={fieldStyle}>
+          <label style={labelStyle}>API Key</label>
+          <input
+            type="password"
+            value={config.apiKey}
+            onChange={(e) => updateModelField(which, 'apiKey', e.target.value)}
+            placeholder="sk-..."
+            style={inputStyle}
+          />
+        </div>
+        <div style={fieldStyle}>
+          <label style={labelStyle}>Model</label>
+          <input
+            type="text"
+            value={config.model}
+            onChange={(e) => updateModelField(which, 'model', e.target.value)}
+            placeholder={which === 'fast' ? 'gpt-3.5-turbo' : 'gpt-4'}
+            style={inputStyle}
+          />
+        </div>
+        <button
+          onClick={() => handleTestConnection(which)}
+          disabled={connectionStatus === 'testing'}
+          style={{
+            padding: '6px 14px',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            background: 'white',
+            cursor: 'pointer',
+            fontSize: '13px',
+          }}
+        >
+          {connectionStatus === 'testing' ? '...' : t('testConnection')}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '24px' }}>
       <h1 style={{ fontSize: '22px', color: '#2D3748', marginBottom: '20px' }}>⚙️ {t('settings')}</h1>
@@ -230,74 +299,14 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* API Configuration */}
-      <div style={sectionStyle}>
-        <h2 style={{ fontSize: '16px', margin: '0 0 12px', color: '#2D3748' }}>🔌 {t('apiConfiguration')}</h2>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Base URL</label>
-          <input
-            type="text"
-            value={settings.apiBaseUrl}
-            onChange={(e) => updateField('apiBaseUrl', e.target.value)}
-            placeholder="https://api.openai.com/v1"
-            style={inputStyle}
-          />
-        </div>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>API Key</label>
-          <input
-            type="password"
-            value={settings.apiKey}
-            onChange={(e) => updateField('apiKey', e.target.value)}
-            placeholder="sk-..."
-            style={inputStyle}
-          />
-        </div>
-      </div>
+      {/* Fast Model */}
+      {renderModelConfig('fast', '⚡', t('fastModel'), 'Used for quick word lookups and sentence translation')}
 
-      {/* Model Configuration */}
-      <div style={sectionStyle}>
-        <h2 style={{ fontSize: '16px', margin: '0 0 12px', color: '#2D3748' }}>🤖 {t('modelConfiguration')}</h2>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>⚡ {t('fastModel')}</label>
-          <input
-            type="text"
-            value={settings.fastModel}
-            onChange={(e) => updateField('fastModel', e.target.value)}
-            placeholder="gpt-3.5-turbo"
-            style={inputStyle}
-          />
-          <p style={{ fontSize: '12px', color: '#A0AEC0', margin: '4px 0 0' }}>Used for quick word lookups</p>
-        </div>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>🧠 {t('smartModel')}</label>
-          <input
-            type="text"
-            value={settings.smartModel}
-            onChange={(e) => updateField('smartModel', e.target.value)}
-            placeholder="gpt-4"
-            style={inputStyle}
-          />
-          <p style={{ fontSize: '12px', color: '#A0AEC0', margin: '4px 0 0' }}>Used for high-quality Anki export</p>
-        </div>
-      </div>
+      {/* Smart Model */}
+      {renderModelConfig('smart', '🧠', t('smartModel'), 'Used for high-quality Anki export')}
 
       {/* Actions */}
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <button
-          onClick={handleTestConnection}
-          disabled={connectionStatus === 'testing'}
-          style={{
-            padding: '10px 20px',
-            border: '1px solid #E2E8F0',
-            borderRadius: '8px',
-            background: 'white',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          {connectionStatus === 'testing' ? '...' : t('testConnection')}
-        </button>
         <button
           onClick={handleSave}
           style={{

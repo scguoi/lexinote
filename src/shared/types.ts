@@ -24,11 +24,15 @@ export interface WordEntry {
   starred: boolean;
 }
 
-export interface Settings {
+export interface ModelConfig {
   apiBaseUrl: string;
   apiKey: string;
-  fastModel: string;
-  smartModel: string;
+  model: string;
+}
+
+export interface Settings {
+  fast: ModelConfig;
+  smart: ModelConfig;
   sourceLanguage: string;
   targetLanguage: string;
   uiLanguage: string;

@@ -47,7 +47,8 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     if (
       oldSettings?.sourceLanguage !== newSettings?.sourceLanguage ||
       oldSettings?.targetLanguage !== newSettings?.targetLanguage ||
-      oldSettings?.fastModel !== newSettings?.fastModel
+      oldSettings?.fast?.model !== newSettings?.fast?.model ||
+      oldSettings?.fast?.apiBaseUrl !== newSettings?.fast?.apiBaseUrl
     ) {
       ephemeralCache.clear();
       console.log('Ephemeral cache cleared due to settings change');
