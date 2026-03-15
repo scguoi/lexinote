@@ -21,7 +21,7 @@ export const App: React.FC = () => {
     await storage.initialize();
     const settings = await storage.getSettings();
     setLocale(settings.uiLanguage);
-    const allWords = await storage.getAllWords();
+    const allWords = await storage.getWords();
     setWords(allWords.sort((a, b) => b.lastSeenAt - a.lastSeenAt));
   };
 
@@ -34,12 +34,9 @@ export const App: React.FC = () => {
   });
 
   const handleToggleStar = async (id: string) => {
-    const word = words.find(w => w.id === id);
-    if (word) {
-      word.starred = !word.starred;
-      await storage.updateWord(id, { starred: word.starred });
-      setWords([...words]);
-    }
+    await storage.toggleStarred(id);
+    const allWords = await storage.getWords();
+    setWords(allWords.sort((a, b) => b.lastSeenAt - a.lastSeenAt));
   };
 
   const handleDelete = async (id: string) => {
@@ -59,24 +56,19 @@ export const App: React.FC = () => {
       </div>
 
       <SearchBar value={search} onChange={setSearch} />
-      <TabFilter active={tab} onChange={setTab} />
-
-      <WordList
-        words={filteredWords}
-        onToggleStar={handleToggleStar}
-        onDelete={handleDelete}
-      />
 
       <div style={{
-        marginTop: '16px',
-        padding: '12px',
+        marginBottom: '12px',
+        padding: '10px 12px',
         background: '#F8F9FA',
         borderRadius: '12px',
-        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
-        <p style={{ margin: '0 0 8px', fontSize: '14px', color: '#2D3748' }}>
+        <span style={{ fontSize: '13px', color: '#2D3748' }}>
           🎉 {t('wordsCollected', String(words.length))}
-        </p>
+        </span>
         <button
           onClick={() => setShowExport(true)}
           style={{
@@ -84,12 +76,20 @@ export const App: React.FC = () => {
             color: 'white',
             border: 'none',
             borderRadius: '8px',
-            padding: '8px 16px',
+            padding: '6px 12px',
             cursor: 'pointer',
-            fontSize: '14px',
+            fontSize: '13px',
           }}
         >📤 {t('exportToAnki')}</button>
       </div>
+
+      <TabFilter active={tab} onChange={setTab} />
+
+      <WordList
+        words={filteredWords}
+        onToggleStar={handleToggleStar}
+        onDelete={handleDelete}
+      />
 
       {showExport && (
         <ExportDialog
