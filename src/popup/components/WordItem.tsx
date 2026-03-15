@@ -56,11 +56,17 @@ export const WordItem: React.FC<WordItemProps> = ({ word, emoji, onToggleStar, o
       </div>
 
       <div style={{ fontSize: '12px', color: '#718096', marginTop: '2px' }}>
-        {word.partOfSpeech ? `${word.partOfSpeech}. ` : ''}{word.definition || ''}
+        {word.partOfSpeech ? `${word.partOfSpeech}` : ''}
       </div>
 
       {expanded && (
         <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '13px' }}>
+          {word.definition && (
+            <div style={{ marginBottom: '6px' }}>
+              <strong>💭 {t('all') === '全部' ? '释义' : 'Definition'}:</strong>
+              <div style={{ color: '#4A5568', marginTop: '2px' }}>{word.definition}</div>
+            </div>
+          )}
           {word.examples && word.examples.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
               <strong>📝 Examples:</strong>

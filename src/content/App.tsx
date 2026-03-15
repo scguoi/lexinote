@@ -7,6 +7,39 @@ import { normalizeWord, generateId } from '../shared/utils';
 import { PENDING_SAVE_TIMEOUT } from '../shared/constants';
 import type { RequestMessage, ResponseMessage, WordEntry } from '../shared/types';
 
+function parseResponseFields(text: string) {
+  const sections = text.split('---');
+  const result: {
+    phonetic?: string;
+    pos?: string;
+    definition?: string;
+    examples?: Array<{ sentence: string; translation: string }>;
+    etymology?: string;
+  } = {};
+
+  for (const section of sections) {
+    const trimmed = section.trim();
+    if (trimmed.startsWith('[phonetic]')) {
+      result.phonetic = trimmed.replace('[phonetic]', '').trim();
+    } else if (trimmed.startsWith('[pos]')) {
+      result.pos = trimmed.replace('[pos]', '').trim();
+    } else if (trimmed.startsWith('[definition]')) {
+      result.definition = trimmed.replace('[definition]', '').trim();
+    } else if (trimmed.startsWith('[example1]') || trimmed.startsWith('[example2]')) {
+      const tag = trimmed.startsWith('[example1]') ? '[example1]' : '[example2]';
+      const lines = trimmed.replace(tag, '').trim().split('\n').filter(l => l.trim());
+      if (lines.length >= 2) {
+        if (!result.examples) result.examples = [];
+        result.examples.push({ sentence: lines[0].trim(), translation: lines[1].trim() });
+      }
+    } else if (trimmed.startsWith('[etymology]')) {
+      result.etymology = trimmed.replace('[etymology]', '').trim();
+    }
+  }
+
+  return result;
+}
+
 export const App: React.FC = () => {
   const { selection, clearSelection } = useSelection();
   const [showButton, setShowButton] = useState(false);
@@ -147,15 +180,16 @@ export const App: React.FC = () => {
 
           // Set up pending save for words (not sentences, not duplicates)
           if (selection.type === 'word' && !(message as any).isDuplicate) {
+            const parsed = parseResponseFields(message.fullText);
             const entry: Partial<WordEntry> = {
               id: generateId(),
               word: selection.text,
               normalizedWord: normalizeWord(selection.text),
-              phonetic: '',
-              partOfSpeech: '',
-              definition: message.fullText,
-              examples: [],
-              etymology: '',
+              phonetic: parsed.phonetic || '',
+              partOfSpeech: parsed.pos || '',
+              definition: parsed.definition || message.fullText,
+              examples: parsed.examples || [],
+              etymology: parsed.etymology || '',
               sources: [{
                 url: selection.url,
                 title: selection.title,
