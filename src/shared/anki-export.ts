@@ -20,18 +20,22 @@ export function exportToAnki(words: WordEntry[], settings: Settings): ExportResu
 
     try {
       const tags = generateTags(word, settings);
-      const examples = word.examples
-        .map(ex => `${escapeField(ex.sentence)}<br>${escapeField(ex.translation)}`)
-        .join('<br><br>');
+
+      // Build back side: all info combined
+      const backParts: string[] = [];
+      if (word.phonetic) backParts.push(word.phonetic);
+      if (word.partOfSpeech) backParts.push(`[${word.partOfSpeech}]`);
+      if (word.definition) backParts.push(`<br><br>${word.definition}`);
+      if (word.examples && word.examples.length > 0) {
+        backParts.push('<br><br>📝 Examples:<br>' + word.examples
+          .map(ex => `${escapeField(ex.sentence)}<br>${escapeField(ex.translation)}`)
+          .join('<br><br>'));
+      }
+      if (word.etymology) backParts.push(`<br><br>🌱 ${escapeField(word.etymology)}`);
 
       const row = [
         escapeField(word.word),
-        escapeField(word.phonetic),
-        escapeField(word.partOfSpeech),
-        escapeField(word.definition),
-        examples,
-        escapeField(word.etymology),
-        escapeField(word.mnemonic || ''),
+        escapeField(backParts.join(' ')),
         tags,
       ].join('\t');
 
