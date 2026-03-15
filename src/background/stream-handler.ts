@@ -43,7 +43,7 @@ export class StreamHandler {
         isWord ? normalizedWord : word,
         settings.sourceLanguage,
         settings.targetLanguage,
-        settings.fast.model
+        settings.model
       );
 
       const cached = ephemeralCache.get(cacheKey);
@@ -76,9 +76,9 @@ export class StreamHandler {
       : this.buildSentencePrompt(word, settings.sourceLanguage, settings.targetLanguage);
 
     const client = new ApiClient({
-      apiBaseUrl: settings.fast.apiBaseUrl,
-      apiKey: settings.fast.apiKey,
-      model: settings.fast.model,
+      apiBaseUrl: settings.apiBaseUrl,
+      apiKey: settings.apiKey,
+      model: settings.model,
     });
 
     const abortController = new AbortController();
