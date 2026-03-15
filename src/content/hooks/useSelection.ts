@@ -27,7 +27,7 @@ export function useSelection() {
     debounceRef.current = window.setTimeout(() => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-        // Don't clear selection if user clicked our UI
+        setSelection(null);
         return;
       }
 
