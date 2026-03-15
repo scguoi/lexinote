@@ -1,4 +1,6 @@
 {
+  "extensionName": { "message": "LexiNote" },
+  "extensionDescription": { "message": "AI 驱动的英语阅读生词捕获工具" },
   "appName": { "message": "LexiNote" },
   "myVocabulary": { "message": "我的生词本" },
   "searchPlaceholder": { "message": "搜索你的单词..." },

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build && node scripts/copy-assets.js",
+    "build": "vite build && vite build --config vite.config.content.ts && vite build --config vite.config.background.ts && node scripts/copy-assets.js",
     "test": "vitest --run",
     "test:watch": "vitest"
   },

@@ -1,4 +1,6 @@
 {
+  "extensionName": { "message": "LexiNote" },
+  "extensionDescription": { "message": "Vocabulary capture tool for English reading with AI-powered definitions" },
   "appName": { "message": "LexiNote" },
   "myVocabulary": { "message": "My Vocabulary" },
   "searchPlaceholder": { "message": "Search your words..." },

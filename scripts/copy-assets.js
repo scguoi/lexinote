@@ -24,4 +24,16 @@ copyDir('_locales', 'dist/_locales');
 // Copy icons
 copyDir('public/icons', 'dist/icons');
 
+// Move HTML files to dist root
+if (fs.existsSync('dist/src/popup/popup.html')) {
+  fs.renameSync('dist/src/popup/popup.html', 'dist/popup.html');
+}
+if (fs.existsSync('dist/src/options/options.html')) {
+  fs.renameSync('dist/src/options/options.html', 'dist/options.html');
+}
+// Clean up empty src directory
+if (fs.existsSync('dist/src')) {
+  fs.rmSync('dist/src', { recursive: true, force: true });
+}
+
 console.log('Assets copied to dist/');
