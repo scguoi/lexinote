@@ -20,6 +20,16 @@ export function useSelection() {
     const host = document.getElementById('lexinote-root');
     if (host && host.contains(e.target as Node)) return;
 
+    // Immediately clear if no selection
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      setSelection(null);
+      return;
+    }
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -27,7 +37,6 @@ export function useSelection() {
     debounceRef.current = window.setTimeout(() => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-        setSelection(null);
         return;
       }
 
