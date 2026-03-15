@@ -151,6 +151,11 @@ export const App: React.FC = () => {
               id: generateId(),
               word: selection.text,
               normalizedWord: normalizeWord(selection.text),
+              phonetic: '',
+              partOfSpeech: '',
+              definition: message.fullText,
+              examples: [],
+              etymology: '',
               sources: [{
                 url: selection.url,
                 title: selection.title,

@@ -56,12 +56,12 @@ export const WordItem: React.FC<WordItemProps> = ({ word, emoji, onToggleStar, o
       </div>
 
       <div style={{ fontSize: '12px', color: '#718096', marginTop: '2px' }}>
-        {word.partOfSpeech}. {word.definition}
+        {word.partOfSpeech ? `${word.partOfSpeech}. ` : ''}{word.definition || ''}
       </div>
 
       {expanded && (
         <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '13px' }}>
-          {word.examples.length > 0 && (
+          {word.examples && word.examples.length > 0 && (
             <div style={{ marginBottom: '6px' }}>
               <strong>📝 Examples:</strong>
               {word.examples.map((ex, i) => (
@@ -78,7 +78,7 @@ export const WordItem: React.FC<WordItemProps> = ({ word, emoji, onToggleStar, o
               <div style={{ color: '#4A5568', marginTop: '2px' }}>{word.etymology}</div>
             </div>
           )}
-          {word.sources.length > 0 && (
+          {word.sources && word.sources.length > 0 && (
             <div style={{ fontSize: '11px', color: '#A0AEC0', marginTop: '6px' }}>
               Seen {word.lookupCount} time(s) · Last: {new Date(word.lastSeenAt).toLocaleDateString()}
             </div>
