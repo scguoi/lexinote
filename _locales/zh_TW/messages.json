@@ -50,5 +50,9 @@
   "relookup": { "message": "重新查詢" },
   "permissionRequired": { "message": "需要權限才能連接此 API" },
   "httpsOnly": { "message": "出於安全考慮，僅支持 HTTPS 鏈接" },
-  "invalidUrl": { "message": "請輸入有效的 URL" }
+  "invalidUrl": { "message": "請輸入有效的 URL" },
+  "captureMode": { "message": "擷取模式" },
+  "captureModeOn": { "message": "開啟" },
+  "captureModeOff": { "message": "關閉" },
+  "captureModeDesc": { "message": "選取文字直接查詞" }
 }

@@ -52,24 +52,50 @@ export const App: React.FC = () => {
   const [currentType, setCurrentType] = useState<'word' | 'sentence'>('word');
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [savedEntryId, setSavedEntryId] = useState<string | null>(null);
+  const [captureMode, setCaptureMode] = useState(false);
+  const [captureModeLoaded, setCaptureModeLoaded] = useState(false);
 
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const requestIdRef = useRef<string>('');
   const scrollStartRef = useRef<number>(0);
   const streamBufferRef = useRef<string>('');
 
-  // Show floating button on selection
+  // Load and listen for capture mode changes
   useEffect(() => {
+    chrome.runtime.sendMessage({ type: 'GET_CAPTURE_MODE' }, (res) => {
+      if (res) setCaptureMode(res.captureMode);
+      setCaptureModeLoaded(true);
+    });
+
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === 'local' && changes.captureMode) {
+        setCaptureMode(!!changes.captureMode.newValue);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+  }, []);
+
+  const handleLookupRef = useRef<(() => void) | null>(null);
+
+  // Show floating button on selection (or auto-lookup in capture mode)
+  useEffect(() => {
+    if (!captureModeLoaded) return; // Wait for capture mode to load
+
     if (selection) {
-      setShowButton(true);
-      setShowCard(false);
-      setStreamingText('');
-      setIsComplete(false);
-      setIsStreaming(false);
+      if (captureMode) {
+        handleLookupRef.current?.();
+      } else {
+        setShowButton(true);
+        setShowCard(false);
+        setStreamingText('');
+        setIsComplete(false);
+        setIsStreaming(false);
+      }
     } else {
       setShowButton(false);
     }
-  }, [selection]);
+  }, [selection, captureMode, captureModeLoaded]);
 
   // Dismiss on click outside
   useEffect(() => {
@@ -247,6 +273,9 @@ export const App: React.FC = () => {
     };
     port.postMessage(request);
   }, [selection]);
+
+  // Keep ref in sync for use in selection effect
+  handleLookupRef.current = handleLookup;
 
   const handleUndo = useCallback(() => {
     // Delete the saved word from storage

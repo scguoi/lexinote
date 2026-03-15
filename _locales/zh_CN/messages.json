@@ -50,5 +50,9 @@
   "relookup": { "message": "重新查询" },
   "permissionRequired": { "message": "需要权限才能连接此 API" },
   "httpsOnly": { "message": "出于安全考虑，仅支持 HTTPS 链接" },
-  "invalidUrl": { "message": "请输入有效的 URL" }
+  "invalidUrl": { "message": "请输入有效的 URL" },
+  "captureMode": { "message": "捕获模式" },
+  "captureModeOn": { "message": "开启" },
+  "captureModeOff": { "message": "关闭" },
+  "captureModeDesc": { "message": "选中文本直接查词" }
 }
