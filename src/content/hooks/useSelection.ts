@@ -14,6 +14,7 @@ export interface SelectionInfo {
 export function useSelection() {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const dblClickRef = useRef<boolean>(false);
 
   const processSelection = useCallback(() => {
     const sel = window.getSelection();
@@ -44,14 +45,20 @@ export function useSelection() {
     const host = document.getElementById('lexinote-root');
     if (host && host.contains(e.target as Node)) return;
 
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      setSelection(null);
+    // Skip if this mouseup is part of a double-click
+    if (dblClickRef.current) {
+      dblClickRef.current = false;
       return;
     }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      setSelection(null);
+      return;
+    }
+
     debounceRef.current = window.setTimeout(processSelection, DEBOUNCE_DELAY);
   }, [processSelection]);
 
@@ -59,8 +66,8 @@ export function useSelection() {
     const host = document.getElementById('lexinote-root');
     if (host && host.contains(e.target as Node)) return;
 
+    dblClickRef.current = true;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    // Double-click: process immediately, no debounce
     processSelection();
   }, [processSelection]);
 
