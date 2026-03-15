@@ -41,7 +41,11 @@ export const App: React.FC = () => {
 
   // Dismiss on click outside
   useEffect(() => {
-    const handleClick = () => {
+    const handleClick = (e: MouseEvent) => {
+      // Ignore clicks on our own UI elements
+      const host = document.getElementById('lexinote-root');
+      if (host && host.contains(e.target as Node)) return;
+
       if (showCard) {
         closeCard();
       }
@@ -62,11 +66,15 @@ export const App: React.FC = () => {
       }
     };
 
-    document.addEventListener('click', handleClick);
+    // Delay adding click listener to avoid catching the same click that triggered the button
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClick);
+    }, 100);
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
+      clearTimeout(timer);
       document.removeEventListener('click', handleClick);
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleScroll);

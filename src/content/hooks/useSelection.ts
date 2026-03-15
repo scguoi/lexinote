@@ -15,7 +15,11 @@ export function useSelection() {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const debounceRef = useRef<number | null>(null);
 
-  const handleSelection = useCallback(() => {
+  const handleSelection = useCallback((e: Event) => {
+    // Ignore events from our own UI
+    const host = document.getElementById('lexinote-root');
+    if (host && host.contains(e.target as Node)) return;
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -23,7 +27,7 @@ export function useSelection() {
     debounceRef.current = window.setTimeout(() => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-        setSelection(null);
+        // Don't clear selection if user clicked our UI
         return;
       }
 
