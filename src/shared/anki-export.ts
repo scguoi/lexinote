@@ -28,10 +28,10 @@ export function exportToAnki(words: WordEntry[], settings: Settings): ExportResu
       if (word.definition) backParts.push(`<br><br>${word.definition}`);
       if (word.examples && word.examples.length > 0) {
         backParts.push('<br><br>📝 Examples:<br>' + word.examples
-          .map(ex => `${escapeField(ex.sentence)}<br>${escapeField(ex.translation)}`)
+          .map(ex => `${ex.sentence}<br>${ex.translation}`)
           .join('<br><br>'));
       }
-      if (word.etymology) backParts.push(`<br><br>🌱 ${escapeField(word.etymology)}`);
+      if (word.etymology) backParts.push(`<br><br>🌱 ${word.etymology}`);
 
       const row = [
         escapeField(word.word),
@@ -53,8 +53,7 @@ export function exportToAnki(words: WordEntry[], settings: Settings): ExportResu
 function escapeField(value: string): string {
   return value
     .replace(/\t/g, ' ')
-    .replace(/\n/g, '<br>')
-    .replace(/"/g, '""');
+    .replace(/\n/g, '<br>');
 }
 
 function generateTags(word: WordEntry, settings: Settings): string {
