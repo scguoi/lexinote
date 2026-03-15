@@ -154,6 +154,12 @@ export const App: React.FC = () => {
     setCardPosition(selection.position);
 
     // Open port for streaming
+    if (!chrome?.runtime?.connect) {
+      setStreamingText('Extension context lost. Please refresh the page.');
+      setIsStreaming(false);
+      setIsComplete(true);
+      return;
+    }
     const port = chrome.runtime.connect({ name: 'lookup' });
     portRef.current = port;
 
