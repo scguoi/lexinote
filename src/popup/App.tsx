@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from '../shared/storage';
-import { t } from '../shared/i18n';
+import { t, setLocale } from '../shared/i18n';
 import type { WordEntry } from '../shared/types';
 import { SearchBar } from './components/SearchBar';
 import { TabFilter } from './components/TabFilter';
@@ -19,6 +19,8 @@ export const App: React.FC = () => {
 
   const loadWords = async () => {
     await storage.initialize();
+    const settings = await storage.getSettings();
+    setLocale(settings.uiLanguage);
     const allWords = await storage.getAllWords();
     setWords(allWords.sort((a, b) => b.lastSeenAt - a.lastSeenAt));
   };

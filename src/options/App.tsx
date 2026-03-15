@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { storage } from '../shared/storage';
-import { t } from '../shared/i18n';
+import { t, setLocale } from '../shared/i18n';
 import type { Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/constants';
 
@@ -41,6 +41,7 @@ export const App: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
   const [connectionMessage, setConnectionMessage] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
     loadSettings();
@@ -63,12 +64,18 @@ export const App: React.FC = () => {
     const s = await storage.getSettings();
     setSettings(s);
     setSavedSettings(s);
+    setLocale(s.uiLanguage);
+    forceUpdate(n => n + 1);
   };
 
   const updateField = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     setIsDirty(true);
     setSaveMessage('');
+    if (key === 'uiLanguage') {
+      setLocale(value as string);
+      forceUpdate(n => n + 1);
+    }
   }, []);
 
   const validateUrl = (url: string): string | null => {
