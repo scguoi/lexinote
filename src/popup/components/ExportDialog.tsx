@@ -7,10 +7,12 @@ import { t } from '../../shared/i18n';
 interface ExportDialogProps {
   words: WordEntry[];
   onClose: () => void;
+  onWordsDeleted: () => void;
 }
 
-export const ExportDialog: React.FC<ExportDialogProps> = ({ words, onClose }) => {
+export const ExportDialog: React.FC<ExportDialogProps> = ({ words, onClose, onWordsDeleted }) => {
   const [result, setResult] = useState<{ exported: number; skipped: number; failed: number } | null>(null);
+  const [exportedWordIds, setExportedWordIds] = useState<string[]>([]);
 
   const preview = useMemo(() => {
     return words.slice(0, 3).map(w => ({
@@ -28,6 +30,14 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ words, onClose }) =>
 
     const date = new Date().toISOString().slice(0, 10);
     downloadFile(exportResult.content, `lexinote-${date}.tsv`);
+
+    // Delete exported words
+    const ids = words.filter(w => w.word && w.definition).map(w => w.id);
+    setExportedWordIds(ids);
+    for (const id of ids) {
+      await storage.deleteWord(id);
+    }
+    onWordsDeleted();
   };
 
   return (

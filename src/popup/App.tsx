@@ -107,6 +107,7 @@ export const App: React.FC = () => {
         <ExportDialog
           words={words}
           onClose={() => setShowExport(false)}
+          onWordsDeleted={loadWords}
         />
       )}
     </div>
