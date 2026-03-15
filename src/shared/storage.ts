@@ -25,6 +25,7 @@ export class StorageManager {
 
   async getWords(): Promise<WordEntry[]> {
     await this.ensureInitialized();
+    await this.reload();
     return this.cache!.words;
   }
 
@@ -35,7 +36,24 @@ export class StorageManager {
 
   async addWord(word: WordEntry): Promise<void> {
     await this.ensureInitialized();
-    this.cache!.words.push(word);
+    // Reload from storage to avoid stale cache
+    await this.reload();
+
+    // Check for duplicate by normalizedWord
+    const existing = this.cache!.words.find(w => w.normalizedWord === word.normalizedWord);
+    if (existing) {
+      // Update existing word's sources instead of adding duplicate
+      if (word.sources && word.sources.length > 0) {
+        existing.sources.push(...word.sources);
+        if (existing.sources.length > MAX_SOURCES_PER_WORD) {
+          existing.sources = existing.sources.slice(-MAX_SOURCES_PER_WORD);
+        }
+      }
+      existing.lastSeenAt = Date.now();
+      existing.lookupCount++;
+    } else {
+      this.cache!.words.push(word);
+    }
     await this.save();
   }
 
@@ -61,12 +79,14 @@ export class StorageManager {
 
   async deleteWord(id: string): Promise<void> {
     await this.ensureInitialized();
+    await this.reload();
     this.cache!.words = this.cache!.words.filter(w => w.id !== id);
     await this.save();
   }
 
   async toggleStarred(id: string): Promise<void> {
     await this.ensureInitialized();
+    await this.reload();
     const word = this.cache!.words.find(w => w.id === id);
     if (word) {
       word.starred = !word.starred;
@@ -88,6 +108,13 @@ export class StorageManager {
   private async ensureInitialized(): Promise<void> {
     if (!this.cache) {
       await this.initialize();
+    }
+  }
+
+  private async reload(): Promise<void> {
+    const data = await chrome.storage.local.get(null);
+    if (data.version) {
+      this.cache = data as StorageSchema;
     }
   }
 
