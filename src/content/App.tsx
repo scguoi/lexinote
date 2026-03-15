@@ -56,6 +56,7 @@ export const App: React.FC = () => {
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const requestIdRef = useRef<string>('');
   const scrollStartRef = useRef<number>(0);
+  const streamBufferRef = useRef<string>('');
 
   // Show floating button on selection
   useEffect(() => {
@@ -146,6 +147,7 @@ export const App: React.FC = () => {
     setShowButton(false);
     setShowCard(true);
     setStreamingText('');
+    streamBufferRef.current = '';
     setIsStreaming(true);
     setIsComplete(false);
     setIsDuplicate(false);
@@ -168,7 +170,8 @@ export const App: React.FC = () => {
 
       switch (message.type) {
         case 'STREAM_CHUNK':
-          setStreamingText(prev => prev + message.content);
+          // Accumulate silently, don't update UI per chunk
+          streamBufferRef.current += message.content;
           break;
         case 'STREAM_COMPLETE':
           setStreamingText(message.fullText);
