@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { detectSelectionType, extractContext } from '../../shared/utils';
+import { DEBOUNCE_DELAY } from '../../shared/constants';
 
 export interface SelectionInfo {
   text: string;
@@ -14,25 +15,42 @@ export function useSelection() {
   const [selection, setSelection] = useState<SelectionInfo | null>(null);
   const debounceRef = useRef<number | null>(null);
 
-  const handleMouseUp = useCallback((e: Event) => {
+  const handleSelection = useCallback((e: Event) => {
+    // Ignore events from our own UI
     const host = document.getElementById('lexinote-root');
     if (host && host.contains(e.target as Node)) return;
 
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Immediately clear if no selection
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      setSelection(null);
+      return;
+    }
 
-    // Short delay to let browser finalize selection
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
     debounceRef.current = window.setTimeout(() => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-        setSelection(null);
         return;
       }
 
       const text = sel.toString().trim();
+      const type = detectSelectionType(text);
+
+      if (type === 'too-long') {
+        setSelection(null);
+        return;
+      }
+
       const range = sel.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      const type = detectSelectionType(text);
-      const context = extractContext(range);
+      const context = extractContext(sel);
 
       setSelection({
         text,
@@ -47,7 +65,7 @@ export function useSelection() {
           height: rect.height,
         },
       });
-    }, 50);
+    }, 20);
   }, []);
 
   const clearSelection = useCallback(() => {
@@ -55,12 +73,17 @@ export function useSelection() {
   }, []);
 
   useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', handleSelection);
+    document.addEventListener('dblclick', handleSelection);
+
     return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      document.removeEventListener('mouseup', handleSelection);
+      document.removeEventListener('dblclick', handleSelection);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
     };
-  }, [handleMouseUp]);
+  }, [handleSelection]);
 
   return { selection, clearSelection };
 }
