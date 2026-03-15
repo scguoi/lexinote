@@ -12,8 +12,12 @@ export const App: React.FC = () => {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'all' | 'starred'>('all');
   const [showExport, setShowExport] = useState(false);
+  const [captureMode, setCaptureMode] = useState(false);
 
   useEffect(() => {
+    chrome.runtime.sendMessage({ type: 'GET_CAPTURE_MODE' }, (res) => {
+      if (res) setCaptureMode(res.captureMode);
+    });
     loadWords();
 
     // Reload when popup gains focus (e.g., reopened)
@@ -56,6 +60,12 @@ export const App: React.FC = () => {
     setWords(words.filter(w => w.id !== id));
   };
 
+  const toggleCaptureMode = () => {
+    chrome.runtime.sendMessage({ type: 'TOGGLE_CAPTURE' }, (res) => {
+      if (res) setCaptureMode(res.captureMode);
+    });
+  };
+
   return (
     <div style={{ padding: '16px', background: '#fff', minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -66,6 +76,41 @@ export const App: React.FC = () => {
           aria-label={t('settings')}
         >⚙️</button>
       </div>
+
+      <button
+        onClick={toggleCaptureMode}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 12px',
+          marginBottom: '12px',
+          background: captureMode ? '#EEF0FF' : '#F8F9FA',
+          border: captureMode ? '1.5px solid #6B7FFF' : '1.5px solid transparent',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>{captureMode ? '⚡' : '🔍'}</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#2D3748' }}>{t('captureMode')}</div>
+            <div style={{ fontSize: '11px', color: '#718096', marginTop: '2px' }}>{t('captureModeDesc')}</div>
+          </div>
+        </div>
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 600,
+          padding: '2px 8px',
+          borderRadius: '6px',
+          background: captureMode ? '#6B7FFF' : '#CBD5E0',
+          color: '#fff',
+        }}>
+          {captureMode ? t('captureModeOn') : t('captureModeOff')}
+        </span>
+      </button>
 
       <SearchBar value={search} onChange={setSearch} />
 

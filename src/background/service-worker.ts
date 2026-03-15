@@ -26,8 +26,39 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
+// Update badge to reflect capture mode state
+async function updateCaptureBadge(enabled: boolean) {
+  await chrome.action.setBadgeText({ text: enabled ? 'ON' : '' });
+  if (enabled) {
+    await chrome.action.setBadgeBackgroundColor({ color: '#6B7FFF' });
+  }
+}
+
+// Restore badge on startup
+chrome.storage.local.get('captureMode', (result) => {
+  updateCaptureBadge(!!result.captureMode);
+});
+
 // Handle one-shot messages (save word)
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === 'TOGGLE_CAPTURE') {
+    chrome.storage.local.get('captureMode', (result) => {
+      const next = !result.captureMode;
+      chrome.storage.local.set({ captureMode: next }, () => {
+        updateCaptureBadge(next);
+        sendResponse({ captureMode: next });
+      });
+    });
+    return true;
+  }
+
+  if (message.type === 'GET_CAPTURE_MODE') {
+    chrome.storage.local.get('captureMode', (result) => {
+      sendResponse({ captureMode: !!result.captureMode });
+    });
+    return true;
+  }
+
   if (message.type === 'SAVE_WORD') {
     storage.addWord(message.entry).then(() => {
       sendResponse({ type: 'SAVE_RESULT', success: true, isDuplicate: false });

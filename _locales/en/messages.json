@@ -50,5 +50,9 @@
   "relookup": { "message": "Re-lookup" },
   "permissionRequired": { "message": "Permission required to connect to this API" },
   "httpsOnly": { "message": "Only HTTPS URLs are supported for security" },
-  "invalidUrl": { "message": "Please enter a valid URL" }
+  "invalidUrl": { "message": "Please enter a valid URL" },
+  "captureMode": { "message": "Capture Mode" },
+  "captureModeOn": { "message": "ON" },
+  "captureModeOff": { "message": "OFF" },
+  "captureModeDesc": { "message": "Look up words instantly on selection" }
 }
