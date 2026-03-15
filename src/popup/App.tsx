@@ -15,6 +15,19 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadWords();
+
+    // Reload when popup gains focus (e.g., reopened)
+    const handleFocus = () => loadWords();
+    window.addEventListener('focus', handleFocus);
+
+    // Listen for storage changes
+    const handleStorageChange = () => loadWords();
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   const loadWords = async () => {
