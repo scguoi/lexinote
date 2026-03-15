@@ -4,7 +4,6 @@ import { FloatingButton } from './components/FloatingButton';
 import { DefinitionCard } from './components/DefinitionCard';
 import { SentenceCard } from './components/SentenceCard';
 import { normalizeWord, generateId } from '../shared/utils';
-import { PENDING_SAVE_TIMEOUT } from '../shared/constants';
 import type { RequestMessage, ResponseMessage, WordEntry } from '../shared/types';
 
 function parseResponseFields(text: string) {
@@ -52,11 +51,10 @@ export const App: React.FC = () => {
   const [currentWord, setCurrentWord] = useState('');
   const [currentType, setCurrentType] = useState<'word' | 'sentence'>('word');
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [savedEntryId, setSavedEntryId] = useState<string | null>(null);
 
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const requestIdRef = useRef<string>('');
-  const pendingSaveTimerRef = useRef<number | null>(null);
-  const pendingEntryRef = useRef<Partial<WordEntry> | null>(null);
   const scrollStartRef = useRef<number>(0);
 
   // Show floating button on selection
@@ -122,18 +120,13 @@ export const App: React.FC = () => {
       portRef.current = null;
     }
 
-    // Cancel pending save
-    if (pendingSaveTimerRef.current) {
-      clearTimeout(pendingSaveTimerRef.current);
-      pendingSaveTimerRef.current = null;
-    }
-
     setShowCard(false);
     setShowButton(false);
     setStreamingText('');
     setIsStreaming(false);
     setIsComplete(false);
     setIsDuplicate(false);
+    setSavedEntryId(null);
     clearSelection();
   }, [clearSelection]);
 
@@ -178,11 +171,12 @@ export const App: React.FC = () => {
           setIsDuplicate(!!(message as any).isDuplicate);
           setLookupCount((message as any).lookupCount || 0);
 
-          // Set up pending save for words (not sentences, not duplicates)
+          // Immediately save for words (not sentences, not duplicates)
           if (selection.type === 'word' && !(message as any).isDuplicate) {
             const parsed = parseResponseFields(message.fullText);
+            const entryId = generateId();
             const entry: Partial<WordEntry> = {
-              id: generateId(),
+              id: entryId,
               word: selection.text,
               normalizedWord: normalizeWord(selection.text),
               phonetic: parsed.phonetic || '',
@@ -204,17 +198,11 @@ export const App: React.FC = () => {
               status: 'new',
               starred: false,
             };
-            pendingEntryRef.current = entry;
-
-            pendingSaveTimerRef.current = window.setTimeout(() => {
-              if (pendingEntryRef.current) {
-                chrome.runtime.sendMessage({
-                  type: 'SAVE_WORD',
-                  entry: pendingEntryRef.current,
-                });
-                pendingEntryRef.current = null;
-              }
-            }, PENDING_SAVE_TIMEOUT);
+            chrome.runtime.sendMessage({
+              type: 'SAVE_WORD',
+              entry,
+            });
+            setSavedEntryId(entryId);
           }
 
           port.disconnect();
@@ -252,14 +240,13 @@ export const App: React.FC = () => {
   }, [selection]);
 
   const handleUndo = useCallback(() => {
-    if (pendingSaveTimerRef.current) {
-      clearTimeout(pendingSaveTimerRef.current);
-      pendingSaveTimerRef.current = null;
+    // Delete the saved word from storage
+    if (savedEntryId) {
+      chrome.runtime.sendMessage({ type: 'DELETE_WORD', id: savedEntryId });
+      setSavedEntryId(null);
     }
-    pendingEntryRef.current = null;
-    // Evict from ephemeral cache would need a message to background
     closeCard();
-  }, [closeCard]);
+  }, [closeCard, savedEntryId]);
 
   const handleRelookup = useCallback(() => {
     // Re-trigger lookup for the same word

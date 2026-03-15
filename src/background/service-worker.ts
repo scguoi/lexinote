@@ -37,6 +37,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     });
     return true;
   }
+
+  if (message.type === 'DELETE_WORD') {
+    storage.deleteWord(message.id).then(() => {
+      sendResponse({ success: true });
+    }).catch((error) => {
+      console.error('Failed to delete word:', error);
+      sendResponse({ success: false });
+    });
+    return true;
+  }
 });
 
 // Clear ephemeral cache when settings change
