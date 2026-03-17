@@ -82,16 +82,8 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!captureModeLoaded) return; // Wait for capture mode to load
 
-    if (selection) {
-      if (captureMode) {
-        handleLookupRef.current?.();
-      } else {
-        setShowButton(true);
-        setShowCard(false);
-        setStreamingText('');
-        setIsComplete(false);
-        setIsStreaming(false);
-      }
+    if (selection && captureMode) {
+      handleLookupRef.current?.();
     } else {
       setShowButton(false);
     }
